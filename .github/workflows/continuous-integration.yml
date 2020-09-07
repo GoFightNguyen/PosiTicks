@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
-      
+
+env:
+  AZURE_WEBBAPP_NAME: PosiTicks-staging
+
 jobs:
   build:
   
@@ -12,8 +15,17 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '3.1.x'
+      
       - name: publish
-        run: dotnet publish --configuration Release ./PosiTicks
+        run: dotnet publish --configuration Release --output ./output ./PosiTicks
+      
+      - name: Deploy to Azure Web Apps using publish profile creds
+        uses: Azure/webapps-deploy@v2
+        with:
+          app-name: ${{env.AZURE_WEBAPP_NAME}}
+          publish-profile: ${{secrets.azureWebbAppPublishProfile}}
+          package: output
