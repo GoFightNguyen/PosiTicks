@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="3.2.1" />
+    <PackageReference Include="NewRelic.Agent" Version="8.32.0" />
   </ItemGroup>
 
   <ItemGroup>
