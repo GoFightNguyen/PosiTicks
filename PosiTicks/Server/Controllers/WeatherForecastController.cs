@@ -27,6 +27,8 @@ namespace PosiTicks.Server.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            System.Diagnostics.Activity.Current.AddTag("testing tag add", "it worked");
+
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
