@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
 
 namespace PosiTicks.Server.Controllers
 {
@@ -28,6 +29,9 @@ namespace PosiTicks.Server.Controllers
         public IEnumerable<WeatherForecast> Get()
         {
             System.Diagnostics.Activity.Current.AddTag("testing tag add", "it worked");
+
+            // just messing with spans
+            var _ = new HttpClient().GetAsync("http://www.newrelic.com").Result;
 
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

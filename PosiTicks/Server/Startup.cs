@@ -37,7 +37,7 @@ namespace PosiTicks.Server
                 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
                 tracerBuilder
-                .UseNewRelic(Configuration)
+                .UseNewRelic(Configuration, loggerFactory)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation();
             });
