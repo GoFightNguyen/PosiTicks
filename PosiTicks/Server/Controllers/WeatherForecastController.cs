@@ -28,11 +28,6 @@ namespace PosiTicks.Server.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            System.Diagnostics.Activity.Current.AddTag("testing tag add", "it worked");
-
-            // just messing with spans
-            var _ = new HttpClient().GetAsync("http://www.newrelic.com").Result;
-
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
