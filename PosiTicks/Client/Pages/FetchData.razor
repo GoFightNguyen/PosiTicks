@@ -1,5 +1,6 @@
 @page "/fetchdata"
 @using PosiTicks.Shared
+@using Serilog
 @inject HttpClient Http
 
 <h1>Weather forecast</h1>
@@ -40,6 +41,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var user = new {Name = "testing structured logging in browser"};
+        Log.ForContext<FetchData>().Information("Client-side getting forecast at {RequestTime} by {@User}", DateTime.UtcNow, user);
         forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
     }
 
