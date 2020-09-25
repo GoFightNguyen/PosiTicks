@@ -46,6 +46,9 @@ namespace PosiTicks.Server
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
+            // place before RequestLogging so that POSTed log payloads from the client don't trigger too much log noise
+            app.UseSerilogIngestion();
+
             // Write streamlined request completion events, instead of the more verbose ones from the framework.
             // To use the default framework request logging instead, remove this line and set the "Microsoft"
             // level in appsettings.json to "Information".

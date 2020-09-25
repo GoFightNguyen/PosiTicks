@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="3.2.1" />
     <PackageReference Include="NewRelic.Agent" Version="8.32.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+    <PackageReference Include="Serilog.AspNetCore.Ingestion" Version="1.0.0-dev-00012" />
   </ItemGroup>
 
   <ItemGroup>
