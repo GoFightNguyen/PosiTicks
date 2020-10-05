@@ -1,0 +1,23 @@
+@page "/classperiod"
+@using PosiTicks.Shared
+@using Serilog
+@inject HttpClient Http
+
+<h1>Add Class Period</h1>
+
+<EditForm Model="@vm" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="name" @bind-Value="vm.Name" />
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private PosiTicks.Shared.ClassPeriod vm = new PosiTicks.Shared.ClassPeriod();
+
+    private void HandleValidSubmit()
+    {
+
+    }
+}
