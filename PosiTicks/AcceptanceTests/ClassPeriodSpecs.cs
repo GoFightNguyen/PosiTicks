@@ -8,27 +8,33 @@ using System;
 
 namespace PosiTicks.AcceptanceTests
 {
-    // As a teacher, the Class Period is how I manager a group of students
+    // As a teacher, the Class Period is how I manage a group of students
     [TestClass]
     public class ClassPeriodSpecs
     {
         [TestClass]
         public class Rule_MustBeUniquelyNamed
         {
+            private ClassPeriodService _sut;
+            
+            [TestInitialize]
+            public async Task Setup()
+            {
+                _sut = new ClassPeriodService();
+                await _sut.CreateAsync("My Favorite One");
+            }
+
             [TestMethod]
             public async Task CanCreateAnotherClassPeriod_WithAUniqueName()
             {
-                var svc = new ClassPeriodService();
-                await svc.CreateAsync("My Favorite One");
-
                 var expected = new List<ClassPeriod>
                 {
                     new ClassPeriod {Name = "My Favorite One"},
                     new ClassPeriod {Name = "My Least Favorite One"}
                 };
 
-                await svc.CreateAsync("My Least Favorite One");
-                var actual = await svc.GetAllAsync();
+                await _sut.CreateAsync("My Least Favorite One");
+                var actual = await _sut.GetAllAsync();
                 actual.Should().BeEquivalentTo(expected);
             }
 
@@ -38,18 +44,15 @@ namespace PosiTicks.AcceptanceTests
             [DataRow("my favorite one", DisplayName = "duplicate, all lower")]
             public async Task CannotCreateAnotherClassPeriod_WithTheSameName(string name)
             {
-                var svc = new ClassPeriodService();
-                await svc.CreateAsync("My Favorite One");
-
                 var expected = new List<ClassPeriod>
                 {
                     new ClassPeriod {Name = "My Favorite One"}
                 };
 
-                Func<Task<ClassPeriod>> mut = async () => await svc.CreateAsync(name);
+                Func<Task<ClassPeriod>> mut = async () => await _sut.CreateAsync(name);
                 await mut.Should().ThrowAsync<Exception>();
 
-                var actual = await svc.GetAllAsync();
+                var actual = await _sut.GetAllAsync();
                 actual.Should().BeEquivalentTo(expected);
             }
         }
