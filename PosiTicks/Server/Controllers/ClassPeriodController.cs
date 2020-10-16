@@ -26,9 +26,31 @@ namespace PosiTicks.Server.Controllers
         public async Task<ActionResult<IEnumerable<ClassPeriod>>> GetClassPeriods()
         {
             _logger.LogInformation("Getting Class Periods at {RequestTime}", DateTime.UtcNow);
-            
+
             var classPeriods = await _service.GetAllAsync();
             return classPeriods.ToList();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ClassPeriod>> GetClassPeriod(int id)
+        {
+            // TODO: implement
+            await Task.CompletedTask;
+            return new ClassPeriod { Id = id, Name = "still needs implemented" };
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ClassPeriod>> CreateClassPeriod(ClassPeriod classPeriod)
+        {
+            _logger.LogInformation("Creating Class Period {@ClassPeriod} at {RequestTime}", classPeriod, DateTime.UtcNow);
+
+            var created = await _service.CreateAsync(classPeriod.Name);
+            return CreatedAtAction(
+                nameof(GetClassPeriod),
+                new { id = created.Id },
+                created
+                );
+            // TODO: error handling
         }
     }
 }

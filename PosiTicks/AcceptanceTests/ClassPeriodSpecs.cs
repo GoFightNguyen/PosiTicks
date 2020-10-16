@@ -12,49 +12,47 @@ namespace PosiTicks.AcceptanceTests
     [TestClass]
     public class ClassPeriodSpecs
     {
-        [TestClass]
-        public class Rule_MustBeUniquelyNamed
+        [TestMethod]
+        public async Task CanCreateAClassPeriod()
         {
-            private ClassPeriodService _sut;
-            
-            [TestInitialize]
-            public async Task Setup()
+            var expected = new List<ClassPeriod>
             {
-                _sut = new ClassPeriodService();
-                await _sut.CreateAsync("My Favorite One");
-            }
+                new ClassPeriod { Id = 1,  Name = "Creation: 1"}
+            };
 
-            [TestMethod]
-            public async Task CanCreateAnotherClassPeriod_WithAUniqueName()
+            var _sut = new ClassPeriodService();
+            await _sut.CreateAsync("Creation: 1");
+
+            var actual = await _sut.GetAllAsync();
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [TestMethod]
+        public async Task ReturnsTheCreatedClassPeriod()
+        {
+            var expected = new ClassPeriod { Id = 1, Name = "Creation: 1" };
+
+            var _sut = new ClassPeriodService();
+            var actual = await _sut.CreateAsync("Creation: 1");
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [TestMethod]
+        public async Task CanCreateAnotherClassPeriod()
+        {
+            var expected = new List<ClassPeriod>
             {
-                var expected = new List<ClassPeriod>
-                {
-                    new ClassPeriod {Name = "My Favorite One"},
-                    new ClassPeriod {Name = "My Least Favorite One"}
-                };
+                new ClassPeriod { Id = 1,  Name = "Creation: 1"},
+                new ClassPeriod { Id = 2,  Name = "Creation: 2"}
+            };
 
-                await _sut.CreateAsync("My Least Favorite One");
-                var actual = await _sut.GetAllAsync();
-                actual.Should().BeEquivalentTo(expected);
-            }
+            var _sut = new ClassPeriodService();
+            await _sut.CreateAsync("Creation: 1");
+            await _sut.CreateAsync("Creation: 2");
 
-            [DataTestMethod]
-            [DataRow("My Favorite One", DisplayName = "exact duplicate")]
-            [DataRow("MY FAVORITE ONE", DisplayName = "duplicate, all upper")]
-            [DataRow("my favorite one", DisplayName = "duplicate, all lower")]
-            public async Task CannotCreateAnotherClassPeriod_WithTheSameName(string name)
-            {
-                var expected = new List<ClassPeriod>
-                {
-                    new ClassPeriod {Name = "My Favorite One"}
-                };
-
-                Func<Task<ClassPeriod>> mut = async () => await _sut.CreateAsync(name);
-                await mut.Should().ThrowAsync<Exception>();
-
-                var actual = await _sut.GetAllAsync();
-                actual.Should().BeEquivalentTo(expected);
-            }
+            var actual = await _sut.GetAllAsync();
+            actual.Should().BeEquivalentTo(expected);
         }
     }
 }

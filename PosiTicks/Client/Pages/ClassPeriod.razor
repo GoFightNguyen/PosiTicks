@@ -16,8 +16,9 @@
 @code {
     private PosiTicks.Shared.ClassPeriod vm = new PosiTicks.Shared.ClassPeriod();
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
-
+        Log.ForContext<ClassPeriod>().Information("Client: Creating {@ClassPeriod} at {RequestTime}", vm, DateTime.UtcNow);
+        var z = await Http.PostAsJsonAsync<PosiTicks.Shared.ClassPeriod>("ClassPeriod", vm);
     }
 }
