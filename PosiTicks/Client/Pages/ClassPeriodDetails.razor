@@ -1,0 +1,41 @@
+@page "/classperiod/{id:int}"
+@using Serilog
+@inject HttpClient Http
+
+@if (loadFailed)
+{
+    <p><em>Sorry, the class period could not be loaded due to an error</em></p>
+}
+else if (vm == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>@vm.Id - @vm.Name</h1>
+}
+
+@code {
+    private bool loadFailed;
+    private PosiTicks.Shared.ClassPeriod vm;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Log.ForContext<ClassPeriodDetails>().Information("Client: Loading class period {Id} at {RequestTime}", Id,
+            DateTime.UtcNow);
+
+        try
+        {
+            loadFailed = false;
+            vm = await Http.GetFromJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}");
+        }
+        catch (Exception ex)
+        {
+            loadFailed = true;
+            Log.ForContext<Index>().Warning(ex, "Client: Failed to load class period {Id}", Id);
+        }
+    }
+}
