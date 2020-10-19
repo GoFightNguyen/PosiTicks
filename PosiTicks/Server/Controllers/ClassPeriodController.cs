@@ -49,7 +49,6 @@ namespace PosiTicks.Server.Controllers
                 new { id = created.Id },
                 created
                 );
-            // TODO: error handling
         }
     }
 }

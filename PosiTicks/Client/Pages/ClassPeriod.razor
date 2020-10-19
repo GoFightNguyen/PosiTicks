@@ -23,7 +23,5 @@
         var response = await Http.PostAsJsonAsync<PosiTicks.Shared.ClassPeriod>("ClassPeriod", vm);
         vm = await response.Content.ReadFromJsonAsync<PosiTicks.Shared.ClassPeriod>();
         NavigationManager.NavigateTo($"classperiod/{vm.Id}");
-
-        // TODO: what if an error occurs
     }
 }
