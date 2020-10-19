@@ -34,9 +34,8 @@ namespace PosiTicks.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ClassPeriod>> GetClassPeriod(int id)
         {
-            // TODO: implement
-            await Task.CompletedTask;
-            return new ClassPeriod { Id = id, Name = "still needs implemented" };
+            _logger.LogInformation("Getting Class Period {Id} at {RequestTime}", id, DateTime.UtcNow);
+            return await _service.GetAsync(id);
         }
 
         [HttpPost]
@@ -54,3 +53,6 @@ namespace PosiTicks.Server.Controllers
         }
     }
 }
+
+// TODO: implement Get in controller
+// TODO: run tests in CI

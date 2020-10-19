@@ -54,5 +54,19 @@ namespace PosiTicks.AcceptanceTests
             var actual = await _sut.GetAllAsync();
             actual.Should().BeEquivalentTo(expected);
         }
+
+        [TestMethod]
+        public async Task CanGetClassPeriod()
+        {
+            var first = new ClassPeriod { Id = 1,  Name = "Creation: 1"};
+            var second = new ClassPeriod { Id = 2,  Name = "Creation: 2"};
+
+            var _sut = new ClassPeriodService();
+            await _sut.CreateAsync("Creation: 1");
+            await _sut.CreateAsync("Creation: 2");
+
+            var actual = await _sut.GetAsync(2);
+            actual.Should().BeEquivalentTo(second);
+        }
     }
 }

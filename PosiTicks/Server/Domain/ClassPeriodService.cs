@@ -14,6 +14,12 @@ namespace PosiTicks.Server.Domain
             return await Task.FromResult(classPeriods);
         }
 
+        public async Task<ClassPeriod> GetAsync(int id)
+        {
+            var match = classPeriods.Single(cp => cp.Id == id);
+            return await Task.FromResult(match);
+        }
+
         public async Task<ClassPeriod> CreateAsync(string name)
         {
             var classPeriod = new ClassPeriod { Id = GetNextId(), Name = name };
