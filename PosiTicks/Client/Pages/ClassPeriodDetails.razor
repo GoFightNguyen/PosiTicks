@@ -12,7 +12,37 @@ else if (vm == null)
 }
 else
 {
-    <h1>@vm.Id - @vm.Name</h1>
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h1>@vm.Name</h1>
+            <p>
+                <button type="button" class="btn btn-primary my-2">Add Tickets</button>
+                <button type="button" class="btn btn-secondary my-2">Add Student</button>
+            </p>
+        </div>
+    </section>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card-deck mb-3 text-center">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            <h4 class="my-0 font-weight-normal">Chrissy Nguyen</h4>
+                        </div>
+                        <div class="card-body">
+                            <h1 class="card-title">18 <small class="text-muted">tickets</small></h1>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary">Add Tickets</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
