@@ -53,6 +53,3 @@ namespace PosiTicks.Server.Controllers
         }
     }
 }
-
-// TODO: implement Get in controller
-// TODO: run tests in CI
