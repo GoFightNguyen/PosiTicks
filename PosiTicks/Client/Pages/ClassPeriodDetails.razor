@@ -23,11 +23,12 @@ else
     </section>
     <div class="container">
         <div class="row">
-            <div class="col-md-4">
-                <div class="card-deck mb-3 text-center">
+            @foreach (var student in vm.Students)
+            {
+                <div class="col-md-4">
                     <div class="card mb-4 shadow-sm">
                         <div class="card-header">
-                            <h4 class="my-0 font-weight-normal">Chrissy Nguyen</h4>
+                            <h4 class="my-0 font-weight-normal">@student.Name</h4>
                         </div>
                         <div class="card-body">
                             <h1 class="card-title">18 <small class="text-muted">tickets</small></h1>
@@ -40,7 +41,7 @@ else
                         </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 }
@@ -61,6 +62,11 @@ else
         {
             loadFailed = false;
             vm = await Http.GetFromJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}");
+            vm.AddStudent("Student 1");
+            vm.AddStudent("Student 2");
+            vm.AddStudent("Student 3");
+            vm.AddStudent("Student 4");
+            vm.AddStudent("Student 5");
         }
         catch (Exception ex)
         {
