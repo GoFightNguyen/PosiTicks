@@ -12,19 +12,22 @@ namespace PosiTicks.AcceptanceTests
     [TestClass]
     public class ClassPeriodSpecs
     {
-        [TestMethod]
-        public async Task CanCreateAClassPeriod()
+        private ClassPeriodService _sut;
+
+        [TestInitialize]
+        public void Setup()
         {
-            var expected = new List<ClassPeriod>
+            _sut = new ClassPeriodService();
+        }
+
+        [TestMethod]
+        public async Task CreateFirstClassPeriod()
+        {
+            await WhenICreateClassPeriod("Creation: 1");
+            await ThenIHaveOneClassPeriod(new List<ClassPeriod>
             {
                 new ClassPeriod { Id = 1,  Name = "Creation: 1"}
-            };
-
-            var _sut = new ClassPeriodService();
-            await _sut.CreateAsync("Creation: 1");
-
-            var actual = await _sut.GetAllAsync();
-            actual.Should().BeEquivalentTo(expected);
+            });
         }
 
         [TestMethod]
@@ -32,41 +35,53 @@ namespace PosiTicks.AcceptanceTests
         {
             var expected = new ClassPeriod { Id = 1, Name = "Creation: 1" };
 
-            var _sut = new ClassPeriodService();
-            var actual = await _sut.CreateAsync("Creation: 1");
+            var actual = await WhenICreateClassPeriod("Creation: 1");
 
             actual.Should().BeEquivalentTo(expected);
         }
 
         [TestMethod]
-        public async Task CanCreateAnotherClassPeriod()
+        public async Task CreateAnotherClassPeriod()
         {
-            var expected = new List<ClassPeriod>
+            await GivenIPreviouslyCreatedClassPeriod("Creation: 1");
+            await WhenICreateClassPeriod("Creation: 2");
+            await ThenIHaveTheFollowingClassPeriods(new List<ClassPeriod>
             {
                 new ClassPeriod { Id = 1,  Name = "Creation: 1"},
                 new ClassPeriod { Id = 2,  Name = "Creation: 2"}
-            };
-
-            var _sut = new ClassPeriodService();
-            await _sut.CreateAsync("Creation: 1");
-            await _sut.CreateAsync("Creation: 2");
-
-            var actual = await _sut.GetAllAsync();
-            actual.Should().BeEquivalentTo(expected);
+            });
         }
 
         [TestMethod]
         public async Task CanGetClassPeriod()
         {
-            var first = new ClassPeriod { Id = 1,  Name = "Creation: 1"};
-            var second = new ClassPeriod { Id = 2,  Name = "Creation: 2"};
+            var second = new ClassPeriod { Id = 2, Name = "Creation: 2" };
 
-            var _sut = new ClassPeriodService();
-            await _sut.CreateAsync("Creation: 1");
-            await _sut.CreateAsync("Creation: 2");
-
-            var actual = await _sut.GetAsync(2);
-            actual.Should().BeEquivalentTo(second);
+            await GivenIPreviouslyCreatedClassPeriod("Creation: 1");
+            await GivenIPreviouslyCreatedClassPeriod("Creation: 2");
+            var actual = await WhenIAskForTheSecondOne();
+            ThenIGet(actual, second);
         }
+
+        private async Task GivenIPreviouslyCreatedClassPeriod(string name)
+                    => await _sut.CreateAsync(name);
+
+        private async Task<ClassPeriod> WhenICreateClassPeriod(string name)
+            => await _sut.CreateAsync(name);
+
+        private async Task<ClassPeriod> WhenIAskForTheSecondOne()
+            => await _sut.GetAsync(2);
+
+        private async Task ThenIHaveOneClassPeriod(IEnumerable<ClassPeriod> expected)
+            => await ThenIHaveTheFollowingClassPeriods(expected);
+
+        private async Task ThenIHaveTheFollowingClassPeriods(IEnumerable<ClassPeriod> expected)
+        {
+            var actual = await _sut.GetAllAsync();
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        private void ThenIGet(ClassPeriod actual, ClassPeriod expected)
+            => actual.Should().BeEquivalentTo(expected);
     }
 }
