@@ -27,10 +27,11 @@ namespace PosiTicks.Server.Domain
             return await Task.FromResult(classPeriod);
         }
 
-        public async Task AddStudent(int classPeriodId, Student student)
+        public async Task UpdateAsync(ClassPeriod classPeriod)
         {
-            var classPeriod = await GetAsync(classPeriodId);
-            classPeriod.AddStudent(student.Name);
+            var match = classPeriods.Single(cp => cp.Id == classPeriod.Id);
+            foreach (var s in classPeriod.Students)
+                match.AddStudent(s.Name);
         }
 
         private int GetNextId() => classPeriods.Any() ? classPeriods.Max(cp => cp.Id) + 1 : 1;
