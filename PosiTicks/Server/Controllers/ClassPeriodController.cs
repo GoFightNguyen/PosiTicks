@@ -43,12 +43,19 @@ namespace PosiTicks.Server.Controllers
         {
             _logger.LogInformation("Creating Class Period {@ClassPeriod} at {RequestTime}", classPeriod, DateTime.UtcNow);
 
-            var created = await _service.CreateAsync(classPeriod.Name);
+            classPeriod = await _service.CreateAsync(classPeriod.Name);
             return CreatedAtAction(
                 nameof(GetClassPeriod),
-                new { id = created.Id },
-                created
+                new { id = classPeriod.Id },
+                classPeriod
                 );
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateClassPeriod(ClassPeriod classPeriod)
+        {
+            await _service.UpdateAsync(classPeriod);
+            return NoContent();
         }
     }
 }

@@ -29,9 +29,9 @@ namespace PosiTicks.Server.Domain
 
         public async Task UpdateAsync(ClassPeriod classPeriod)
         {
+            await Task.Delay(1);
             var match = classPeriods.Single(cp => cp.Id == classPeriod.Id);
-            foreach (var s in classPeriod.Students)
-                match.AddStudent(s.Name);
+            match = classPeriod;
         }
 
         private int GetNextId() => classPeriods.Any() ? classPeriods.Max(cp => cp.Id) + 1 : 1;
