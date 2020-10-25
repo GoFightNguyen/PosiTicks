@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PosiTicks.Shared
@@ -9,19 +8,16 @@ namespace PosiTicks.Shared
     {
         private static readonly Regex REGEX = new Regex(@"\s+");
 
-        private IList<Student> _students = new List<Student>();
-
         [Key]
         public int Id { get; set; }
 
         [Required]
         public string Name { get; set; }
 
-        public IEnumerable<Student> Students
-            => _students.AsEnumerable();
+        public IList<Student> Students { get; set; } = new List<Student>();
 
         public void AddStudent(string name)
-            => _students.Add(new Student { Name = RemoveExcessWhitespace(name) });
+            => Students.Add(new Student { Name = RemoveExcessWhitespace(name) });
 
         private static string RemoveExcessWhitespace(string value)
             => REGEX.Replace(value.Trim(), @" ");
