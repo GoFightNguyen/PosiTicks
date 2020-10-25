@@ -15,10 +15,23 @@ else
     <section class="jumbotron text-center">
         <div class="container">
             <h1>@vm.Name</h1>
-            <p>
-                <button type="button" class="btn btn-primary my-2">Add Tickets</button>
-                <button type="button" class="btn btn-secondary my-2">Add Student</button>
-            </p>
+            @if (!addingStudent)
+            {
+                <p>
+                    <button type="button" class="btn btn-primary my-2">Add Tickets</button>
+                    <button type="button" class="btn btn-secondary my-2" @onclick="AddStudentButtonClicked">Add Student</button>
+                </p>
+            }
+            else
+            {
+                <EditForm Model="@student" OnValidSubmit="@HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <InputText id="name" @bind-Value="student.Name" />
+                    <button type="submit">Submit</button>
+                </EditForm>
+            }
         </div>
     </section>
     <div class="container">
@@ -50,6 +63,9 @@ else
     private bool loadFailed;
     private PosiTicks.Shared.ClassPeriod vm;
 
+    private bool addingStudent;
+    private PosiTicks.Shared.Student student;
+
     [Parameter]
     public int Id { get; set; }
 
@@ -62,16 +78,30 @@ else
         {
             loadFailed = false;
             vm = await Http.GetFromJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}");
-            vm.AddStudent("Student 1");
-            vm.AddStudent("Student 2");
-            vm.AddStudent("Student 3");
-            vm.AddStudent("Student 4");
-            vm.AddStudent("Student 5");
         }
         catch (Exception ex)
         {
             loadFailed = true;
             Log.ForContext<Index>().Warning(ex, "Client: Failed to load class period {Id}", Id);
         }
+    }
+
+    async Task AddStudentButtonClicked()
+    {
+        addingStudent = true;
+        student = new PosiTicks.Shared.Student();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
+        vm.AddStudent(student.Name);
+        var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
+        
+        // TODO: UI for adding more students or being done
+        // TODO: handle error
+        // TODO: Validation: unique class period name
+        // TODO: Validation: unique student within class period
     }
 }

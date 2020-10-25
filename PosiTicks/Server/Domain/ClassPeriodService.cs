@@ -31,7 +31,13 @@ namespace PosiTicks.Server.Domain
         {
             await Task.Delay(1);
             var match = classPeriods.Single(cp => cp.Id == classPeriod.Id);
-            match = classPeriod;
+            foreach(var student in classPeriod.Students)
+            {
+                if (match.Students.Any(s => s.Name == student.Name))
+                    continue;
+                
+                match.AddStudent(student.Name);
+            }
         }
 
         private int GetNextId() => classPeriods.Any() ? classPeriods.Max(cp => cp.Id) + 1 : 1;

@@ -4,6 +4,7 @@ using FluentAssertions;
 using PosiTicks.Server.Domain;
 using System.Threading.Tasks;
 using PosiTicks.Shared;
+using System.Linq;
 
 namespace PosiTicks.AcceptanceTests
 {
@@ -62,14 +63,77 @@ namespace PosiTicks.AcceptanceTests
             ThenIGet(actual, second);
         }
 
+        [TestMethod]
+        public async Task AddStudent()
+        {
+            var orig = await GivenIPreviouslyCreatedClassPeriod("Add Students: Justice League of America");
+
+            var request = new ClassPeriod
+            {
+                Id = orig.Id,
+                Name = orig.Name
+            };
+            
+            await WhenIAddStudents(request, "Batman");
+            ThenTheseStudentsAreInTheClassPeriod(orig, "Batman");
+        }
+
+        [TestMethod]
+        public async Task AddStudentsToClassAlreadyContainingStudents()
+        {
+            var orig = await GivenAClassPeriodWithStudents("Add Students: Justice League of America", "Batman", "Killer Frost");
+
+            var request = new ClassPeriod
+            {
+                Id = orig.Id,
+                Name = orig.Name,
+                Students = new List<Student>
+                { 
+                    new Student { Name = "Batman"},
+                    new Student { Name = "Killer Frost"}
+                }
+            };
+
+            await WhenIAddStudents(request, "Black Canary", "Vixen", "The Atom", "The Ray", "Lobo");
+            ThenTheseStudentsAreInTheClassPeriod(orig,
+                "Batman", 
+                "Killer Frost", 
+                "Black Canary",
+                "Vixen",
+                "The Atom",
+                "The Ray",
+                "Lobo"
+            );
+        }
+
         private async Task<ClassPeriod> GivenIPreviouslyCreatedClassPeriod(string name) 
             => await _sut.CreateAsync(name);
+
+        private async Task<ClassPeriod> GivenAClassPeriodWithStudents(string name, params string[] students)
+        {
+            var cp = await _sut.CreateAsync(name);
+            foreach (var student in students)
+            {
+                cp.AddStudent(student);
+            }
+            await _sut.UpdateAsync(cp);
+
+            return cp;
+        }
 
         private async Task<ClassPeriod> WhenICreateClassPeriod(string name)
             => await _sut.CreateAsync(name);
 
         private async Task<ClassPeriod> WhenIAskForTheSecondOne()
             => await _sut.GetAsync(2);
+
+        private async Task WhenIAddStudents(ClassPeriod request, params string[] students)
+        {
+            foreach (var student in students)
+                request.AddStudent(student);
+
+            await _sut.UpdateAsync(request);
+        }
 
         private async Task ThenIHaveOneClassPeriod(IEnumerable<ClassPeriod> expected)
             => await ThenIHaveTheFollowingClassPeriods(expected);
@@ -82,5 +146,11 @@ namespace PosiTicks.AcceptanceTests
 
         private void ThenIGet(ClassPeriod actual, ClassPeriod expected)
             => actual.Should().BeEquivalentTo(expected);
+
+        private static void ThenTheseStudentsAreInTheClassPeriod(ClassPeriod classPeriod, params string[] students)
+        {
+            var expected = students.Select(s => new Student { Name = s });
+            classPeriod.Students.Should().BeEquivalentTo(expected);
+        }
     }
 }
