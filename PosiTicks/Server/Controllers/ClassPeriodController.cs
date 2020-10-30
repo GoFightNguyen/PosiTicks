@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PosiTicks.Server.Domain;
+using System.Net;
 
 namespace PosiTicks.Server.Controllers
 {
@@ -43,12 +44,26 @@ namespace PosiTicks.Server.Controllers
         {
             _logger.LogInformation("Creating Class Period {@ClassPeriod} at {RequestTime}", classPeriod, DateTime.UtcNow);
 
-            classPeriod = await _service.CreateAsync(classPeriod.Name);
-            return CreatedAtAction(
-                nameof(GetClassPeriod),
-                new { id = classPeriod.Id },
-                classPeriod
+            try
+            {
+                classPeriod = await _service.CreateAsync(classPeriod.Name);
+                return CreatedAtAction(
+                    nameof(GetClassPeriod),
+                    new { id = classPeriod.Id },
+                    classPeriod
                 );
+            }
+            catch (DuplicateClassPeriodException ex)
+            {
+                ModelState.AddModelError(nameof(classPeriod.Name), ex.Message);
+                return BadRequest(ModelState);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Creating Class Period {@ClassPeriod} failed", classPeriod);
+            }
+
+            return StatusCode((int)HttpStatusCode.InternalServerError);
         }
 
         [HttpPut("{id}")]
