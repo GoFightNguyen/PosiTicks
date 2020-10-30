@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 
-<h1>Add Class Period</h1>
+<h1>Create Class Period</h1>
 
 @if (createFailedUnexpectedly)
 {
@@ -19,7 +19,7 @@ else
         <label>
             Name: <InputText id="name" @bind-Value="vm.Name" />
         </label>
-        <button type="submit">Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
     </EditForm>
 }
 
