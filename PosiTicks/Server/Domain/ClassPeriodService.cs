@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using PosiTicks.Shared;
 using System.Linq;
+using System;
 
 namespace PosiTicks.Server.Domain
 {
@@ -22,6 +23,9 @@ namespace PosiTicks.Server.Domain
 
         public async Task<ClassPeriod> CreateAsync(string name)
         {
+            if (classPeriods.Any(cp => cp.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                throw new DuplicateClassPeriodException(name);
+
             var classPeriod = new ClassPeriod { Id = GetNextId(), Name = name };
             classPeriods.Add(classPeriod);
             return await Task.FromResult(classPeriod);

@@ -5,15 +5,15 @@ using PosiTicks.Server.Domain;
 using System.Threading.Tasks;
 using PosiTicks.Shared;
 using System.Linq;
+using System;
 
 namespace PosiTicks.AcceptanceTests
 {
     // As a teacher, the Class Period is how I manage a group of students
-    [TestClass]
-    public class ClassPeriodSpecs
-    {
-        private ClassPeriodService _sut;
 
+    [TestClass]
+    public class CreatingAClassPeriod : Steps
+    {
         [TestInitialize]
         public void Setup()
         {
@@ -24,7 +24,7 @@ namespace PosiTicks.AcceptanceTests
         public async Task CreateFirstClassPeriod()
         {
             await WhenICreateClassPeriod("Creation: 1");
-            await ThenIHaveOneClassPeriod(new List<ClassPeriod>
+            await ThenIHaveTheFollowingClassPeriods(new List<ClassPeriod>
             {
                 new ClassPeriod { Id = 1,  Name = "Creation: 1"}
             });
@@ -34,26 +34,12 @@ namespace PosiTicks.AcceptanceTests
         public async Task ReturnsTheCreatedClassPeriod()
         {
             var expected = new ClassPeriod { Id = 1, Name = "Creation: 1" };
-
             var actual = await WhenICreateClassPeriod("Creation: 1");
-
             actual.Should().BeEquivalentTo(expected);
         }
 
         [TestMethod]
-        public async Task CreateAnotherClassPeriod()
-        {
-            await GivenIPreviouslyCreatedClassPeriod("Creation: 1");
-            await WhenICreateClassPeriod("Creation: 2");
-            await ThenIHaveTheFollowingClassPeriods(new List<ClassPeriod>
-            {
-                new ClassPeriod { Id = 1,  Name = "Creation: 1"},
-                new ClassPeriod { Id = 2,  Name = "Creation: 2"}
-            });
-        }
-
-        [TestMethod]
-        public async Task GetClassPeriod()
+        public async Task GetSpecifiedClassPeriod()
         {
             var second = new ClassPeriod { Id = 2, Name = "Creation: 2" };
 
@@ -61,6 +47,53 @@ namespace PosiTicks.AcceptanceTests
             await GivenIPreviouslyCreatedClassPeriod("Creation: 2");
             var actual = await WhenIAskForTheSecondOne();
             ThenIGet(actual, second);
+        }
+    }
+
+    [TestClass]
+    public class Rule_ClassPeriodNameIsUnique : Steps
+    {
+        [TestInitialize]
+        public async Task Background()
+        {
+            _sut = new ClassPeriodService();
+            await GivenIPreviouslyCreatedClassPeriod("Creation: Justice League of America");
+        }
+
+        [TestMethod]
+        public async Task CreateAClassPeriodWithADifferentName()
+        {
+            await WhenICreateClassPeriod("Creation: Lord Havok and The Extremists");
+            await ThenIHaveTheFollowingClassPeriods(new List<ClassPeriod>
+                {
+                    new ClassPeriod { Id = 1,  Name = "Creation: Justice League of America"},
+                    new ClassPeriod { Id = 2,  Name = "Creation: Lord Havok and The Extremists"}
+                });
+        }
+
+        [DataTestMethod]
+        [DataRow("Creation: Justice League of America", DisplayName = "exact match")]
+        [DataRow("CREATION: JUSTICE LEAGUE OF AMERICA", DisplayName = "all upper")]
+        [DataRow("creation: justice league of america", DisplayName = "all lower")]
+        [DataRow("Creation: justice League Of AmerIca", DisplayName = "mixed")]
+        public async Task CannotCreateAClassPeriodWithTheSameName(string name)
+        {
+            Func<Task> mut = async () => await WhenICreateClassPeriod(name);
+            await mut.Should().ThrowAsync<DuplicateClassPeriodException>();
+            await ThenIHaveTheFollowingClassPeriods(new List<ClassPeriod>
+                {
+                    new ClassPeriod { Id = 1,  Name = "Creation: Justice League of America"}
+                });
+        }
+    }
+
+    [TestClass]
+    public class AddingStudents : Steps
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _sut = new ClassPeriodService();
         }
 
         [TestMethod]
@@ -73,7 +106,7 @@ namespace PosiTicks.AcceptanceTests
                 Id = orig.Id,
                 Name = orig.Name
             };
-            
+
             await WhenIAddStudents(request, "Batman");
             ThenTheseStudentsAreInTheClassPeriod(orig, "Batman");
         }
@@ -88,7 +121,7 @@ namespace PosiTicks.AcceptanceTests
                 Id = orig.Id,
                 Name = orig.Name,
                 Students = new List<Student>
-                { 
+                {
                     new Student { Name = "Batman"},
                     new Student { Name = "Killer Frost"}
                 }
@@ -96,8 +129,8 @@ namespace PosiTicks.AcceptanceTests
 
             await WhenIAddStudents(request, "Black Canary", "Vixen", "The Atom", "The Ray", "Lobo");
             ThenTheseStudentsAreInTheClassPeriod(orig,
-                "Batman", 
-                "Killer Frost", 
+                "Batman",
+                "Killer Frost",
                 "Black Canary",
                 "Vixen",
                 "The Atom",
@@ -105,29 +138,29 @@ namespace PosiTicks.AcceptanceTests
                 "Lobo"
             );
         }
+    }
 
-        private async Task<ClassPeriod> GivenIPreviouslyCreatedClassPeriod(string name) 
+    public abstract class Steps
+    {
+        protected ClassPeriodService _sut;
+
+        /**Given**/
+        protected async Task<ClassPeriod> GivenIPreviouslyCreatedClassPeriod(string name)
             => await _sut.CreateAsync(name);
 
-        private async Task<ClassPeriod> GivenAClassPeriodWithStudents(string name, params string[] students)
+        protected async Task<ClassPeriod> GivenAClassPeriodWithStudents(string name, params string[] students)
         {
             var cp = await _sut.CreateAsync(name);
             foreach (var student in students)
-            {
                 cp.AddStudent(student);
-            }
-            await _sut.UpdateAsync(cp);
 
+            await _sut.UpdateAsync(cp);
             return cp;
         }
 
-        private async Task<ClassPeriod> WhenICreateClassPeriod(string name)
-            => await _sut.CreateAsync(name);
 
-        private async Task<ClassPeriod> WhenIAskForTheSecondOne()
-            => await _sut.GetAsync(2);
-
-        private async Task WhenIAddStudents(ClassPeriod request, params string[] students)
+        /**When**/
+        protected async Task WhenIAddStudents(ClassPeriod request, params string[] students)
         {
             foreach (var student in students)
                 request.AddStudent(student);
@@ -135,19 +168,24 @@ namespace PosiTicks.AcceptanceTests
             await _sut.UpdateAsync(request);
         }
 
-        private async Task ThenIHaveOneClassPeriod(IEnumerable<ClassPeriod> expected)
-            => await ThenIHaveTheFollowingClassPeriods(expected);
+        protected async Task<ClassPeriod> WhenIAskForTheSecondOne()
+            => await _sut.GetAsync(2);
 
-        private async Task ThenIHaveTheFollowingClassPeriods(IEnumerable<ClassPeriod> expected)
+        protected async Task<ClassPeriod> WhenICreateClassPeriod(string name)
+            => await _sut.CreateAsync(name);
+
+
+        /**Then**/
+        protected void ThenIGet(ClassPeriod actual, ClassPeriod expected)
+            => actual.Should().BeEquivalentTo(expected);
+
+        protected async Task ThenIHaveTheFollowingClassPeriods(IEnumerable<ClassPeriod> expected)
         {
             var actual = await _sut.GetAllAsync();
             actual.Should().BeEquivalentTo(expected);
         }
 
-        private void ThenIGet(ClassPeriod actual, ClassPeriod expected)
-            => actual.Should().BeEquivalentTo(expected);
-
-        private static void ThenTheseStudentsAreInTheClassPeriod(ClassPeriod classPeriod, params string[] students)
+        protected static void ThenTheseStudentsAreInTheClassPeriod(ClassPeriod classPeriod, params string[] students)
         {
             var expected = students.Select(s => new Student { Name = s });
             classPeriod.Students.Should().BeEquivalentTo(expected);
