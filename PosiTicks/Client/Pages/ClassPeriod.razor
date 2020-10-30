@@ -5,23 +5,55 @@
 
 <h1>Add Class Period</h1>
 
-<EditForm Model="@vm" OnValidSubmit="@HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (createFailedUnexpectedly)
+{
+    <p><em>Sorry, the class period could not be created due to an error</em></p>
+}
+else
+{
+    <EditForm Model="@vm" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <CustomValidator @ref="customValidator" />
+        <ValidationSummary />
 
-    <InputText id="name" @bind-Value="vm.Name" />
-    <button type="submit">Submit</button>
-</EditForm>
+        <label>
+            Name: <InputText id="name" @bind-Value="vm.Name" />
+        </label>
+        <button type="submit">Submit</button>
+    </EditForm>
+}
 
 @code {
+    private bool createFailedUnexpectedly;
+    private CustomValidator customValidator;
     private PosiTicks.Shared.ClassPeriod vm = new PosiTicks.Shared.ClassPeriod();
 
-    private async Task HandleValidSubmit()
+    private async Task HandleValidSubmit(EditContext editContext)
     {
         Log.ForContext<ClassPeriod>().Information("Client: Creating {@ClassPeriod} at {RequestTime}", vm, DateTime.UtcNow);
 
-        var response = await Http.PostAsJsonAsync<PosiTicks.Shared.ClassPeriod>("ClassPeriod", vm);
-        vm = await response.Content.ReadFromJsonAsync<PosiTicks.Shared.ClassPeriod>();
-        NavigationManager.NavigateTo($"classperiod/{vm.Id}");
-    }
-}
+        customValidator.ClearErrors();
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync<PosiTicks.Shared.ClassPeriod>("ClassPeriod", (PosiTicks.Shared.ClassPeriod)editContext.Model);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, IEnumerable<string>>>();
+                customValidator.DisplayErrors(errors);
+            }
+            else if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"Creation failed. Status Code: {response.StatusCode}");
+            else
+            {
+                vm = await response.Content.ReadFromJsonAsync<PosiTicks.Shared.ClassPeriod>();
+                NavigationManager.NavigateTo($"classperiod/{vm.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            createFailedUnexpectedly = true;
+            Log.ForContext<ClassPeriod>().Error("Client: Creating {@ClassPeriod} failed. Error: {@Error}", vm, ex.Message);
+        }
+    } }
