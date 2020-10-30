@@ -40,6 +40,7 @@ else
 
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
+                Log.ForContext<ClassPeriod>().Information("{@Content}", response.Content);
                 var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, IEnumerable<string>>>();
                 customValidator.DisplayErrors(errors);
             }
