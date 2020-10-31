@@ -29,7 +29,8 @@ else
                     <ValidationSummary />
 
                     <InputText id="name" @bind-Value="student.Name" />
-                    <button type="submit">Submit</button>
+                    <button type="button" class="btn btn-secondary" @onclick="AddAnotherButtonClicked">Add Another</button>
+                    <button type="submit" class="btn btn-primary">Finished</button>
                 </EditForm>
             }
         </div>
@@ -98,9 +99,18 @@ else
         Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
         vm.AddStudent(student.Name);
         var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
-        
+
         // TODO: UI for adding more students or being done
         // TODO: handle error
         // TODO: Validation: unique student within class period
+    }
+
+    public void AddAnotherButtonClicked()
+    {
+        Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
+        vm.AddStudent(student.Name);
+
+        student = new PosiTicks.Shared.Student();
+        StateHasChanged();
     }
 }
