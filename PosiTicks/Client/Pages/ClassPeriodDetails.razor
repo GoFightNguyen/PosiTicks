@@ -1,6 +1,7 @@
 @page "/classperiod/{id:int}"
 @using Serilog
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime;
 
 @if (loadFailed)
 {
@@ -28,9 +29,9 @@ else
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    <InputText id="name" @bind-Value="student.Name" />
-                    <button type="button" class="btn btn-secondary" @onclick="AddAnotherButtonClicked">Add Another</button>
-                    <button type="submit" class="btn btn-primary">Finished</button>
+                    <InputText id="addStudentName" @bind-Value="student.Name" />
+                    <button type="submit" class="btn btn-primary">Add Another</button>
+                    <button type="button" class="btn btn-secondary" @onclick="FinishButtonClicked">Finish</button>
                 </EditForm>
             }
         </div>
@@ -87,6 +88,14 @@ else
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if(addingStudent)
+            await JSRuntime.InvokeVoidAsync("focusElement", "addStudentName");
+    }
+
     async Task AddStudentButtonClicked()
     {
         addingStudent = true;
@@ -94,23 +103,23 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleValidSubmit()
+    public async Task HandleValidSubmit()
     {
         Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
         vm.AddStudent(student.Name);
-        var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
+
+        student = new PosiTicks.Shared.Student();
+        await InvokeAsync(StateHasChanged);
 
         // TODO: UI for adding more students or being done
         // TODO: handle error
         // TODO: Validation: unique student within class period
     }
 
-    public void AddAnotherButtonClicked()
+    private async Task FinishButtonClicked()
     {
         Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
         vm.AddStudent(student.Name);
-
-        student = new PosiTicks.Shared.Student();
-        StateHasChanged();
+        var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
     }
 }
