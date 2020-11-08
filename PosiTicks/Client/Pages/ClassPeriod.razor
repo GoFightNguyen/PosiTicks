@@ -2,6 +2,7 @@
 @using Serilog
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <h1>Create Class Period</h1>
 
@@ -17,7 +18,7 @@ else
         <ValidationSummary />
 
         <label>
-            Name: <InputText id="name" @bind-Value="vm.Name" />
+            Name: <InputText id="createClassPeriodName" @bind-Value="vm.Name" />
         </label>
         <button type="submit" class="btn btn-primary">Submit</button>
     </EditForm>
@@ -27,6 +28,14 @@ else
     private bool createFailedUnexpectedly;
     private CustomValidator customValidator;
     private PosiTicks.Shared.ClassPeriod vm = new PosiTicks.Shared.ClassPeriod();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+            await JSRuntime.InvokeVoidAsync("focusElement", "createClassPeriodName");
+    }
 
     private async Task HandleValidSubmit(EditContext editContext)
     {
@@ -56,4 +65,5 @@ else
             createFailedUnexpectedly = true;
             Log.ForContext<ClassPeriod>().Error("Client: Creating {@ClassPeriod} failed. Error: {@Error}", vm, ex.Message);
         }
-    } }
+    }
+}

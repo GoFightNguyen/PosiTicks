@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -10,6 +10,17 @@
     <link href="css/app.css" rel="stylesheet" />
     <link href="manifest.json" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+
+    <script type="text/javascript">
+        window.focusElement = (id) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.focus();
+            } else {
+                console.warn(`Unable to focus: element id '${id}' not found`);
+            }
+        };
+    </script>
 </head>
 
 <body>
