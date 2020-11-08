@@ -27,6 +27,7 @@ else
             {
                 <EditForm Model="@student" OnValidSubmit="@HandleValidSubmit">
                     <DataAnnotationsValidator />
+                    <CustomValidator @ref="customValidator" />
                     <ValidationSummary />
 
                     <InputText id="addStudentName" @bind-Value="student.Name" />
@@ -64,6 +65,7 @@ else
 @code {
     private bool loadFailed;
     private PosiTicks.Shared.ClassPeriod vm;
+    private CustomValidator customValidator;
 
     private bool addingStudent;
     private PosiTicks.Shared.Student student;
@@ -103,29 +105,39 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task HandleValidSubmit()
-    {
-        Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
-        vm.AddStudent(student.Name);
+    public void HandleValidSubmit() => TryAddStudent();
 
-        student = new PosiTicks.Shared.Student();
-        await InvokeAsync(StateHasChanged);
-
-        // TODO: UI for adding more students or being done
-        // TODO: handle error
-        // TODO: Validation: unique student within class period
-    }
-
-    private async Task FinishButtonClicked()
+    async Task FinishButtonClicked()
     {
         if (!string.IsNullOrWhiteSpace(student.Name))
         {
-            Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
-            vm.AddStudent(student.Name);
-            student = new PosiTicks.Shared.Student();
+            if (!TryAddStudent())
+                return;
         }
 
         addingStudent = false;
         var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
+        // TODO: handle server error
+    }
+
+    private bool TryAddStudent()
+    {
+        customValidator.ClearErrors();
+        var errors = new Dictionary<string, IEnumerable<string>>();
+
+        try
+        {
+            vm.AddStudent(student.Name);
+        }
+        catch (PosiTicks.Shared.DuplicateStudentException ex)
+        {
+            errors.Add(nameof(student.Name), new List<string> { ex.Message });
+            customValidator.DisplayErrors(errors);
+            return false;
+        }
+
+        Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
+        student = new PosiTicks.Shared.Student();
+        return true;
     }
 }

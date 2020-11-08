@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PosiTicks.Shared
@@ -11,13 +13,20 @@ namespace PosiTicks.Shared
         [Key]
         public int Id { get; set; }
 
+        // TODO: remove excess whitespace
         [Required]
         public string Name { get; set; }
 
         public IList<Student> Students { get; set; } = new List<Student>();
 
         public void AddStudent(string name)
-            => Students.Add(new Student { Name = RemoveExcessWhitespace(name) });
+        {
+            var cleanedUpName = RemoveExcessWhitespace(name);
+            if (Students.Any(s => s.Name.Equals(cleanedUpName, StringComparison.OrdinalIgnoreCase)))
+                throw new DuplicateStudentException(cleanedUpName);
+
+            Students.Add(new Student { Name = cleanedUpName });
+        }
 
         private static string RemoveExcessWhitespace(string value)
             => REGEX.Replace(value.Trim(), @" ");
