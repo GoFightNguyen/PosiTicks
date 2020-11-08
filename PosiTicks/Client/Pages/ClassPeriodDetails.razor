@@ -118,8 +118,12 @@ else
 
     private async Task FinishButtonClicked()
     {
-        Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
-        vm.AddStudent(student.Name);
+        if (!string.IsNullOrWhiteSpace(student.Name))
+        {
+            Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
+            vm.AddStudent(student.Name);
+        }
+
         var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
     }
 }
