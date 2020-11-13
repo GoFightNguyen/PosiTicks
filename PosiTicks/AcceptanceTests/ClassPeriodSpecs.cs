@@ -140,6 +140,88 @@ namespace PosiTicks.AcceptanceTests
         }
     }
 
+    [TestClass]
+    public class Rule_StudentNameIsUniqueWithinAClassPeriod : Steps
+    {
+        private ClassPeriod _theBatmen;
+
+        [TestInitialize]
+        public async Task Background()
+        {
+            _sut = new ClassPeriodService();
+            await GivenAClassPeriodWithStudents("Add Students: Justice League of America",
+                "Batman",
+                "Killer Frost",
+                "Black Canary",
+                "Vixen",
+                "The Atom",
+                "The Ray",
+                "Lobo");
+            _theBatmen = await GivenAClassPeriodWithStudents("Add Students: The Batmen", 
+                "Batwoman",
+                "Red Robin",
+                "Spoiler",
+                "Orphan",
+                "Clayface");
+        }
+
+        [TestMethod]
+        public async Task AddAStudentWithTheSameNameToADifferentClassPeriod()
+        {
+            var request = new ClassPeriod
+            {
+                Id = _theBatmen.Id,
+                Name = _theBatmen.Name,
+                Students = new List<Student>
+                {
+                    // Although Batwoman is already in the class period, purposefully leave out of the request.
+                    // This enables us to mimic the server and request being out of sync
+                    //new Student { Name = "Batwoman" },
+                    new Student { Name = "Red Robin" },
+                    new Student { Name = "Spoiler" },
+                    new Student { Name = "Orphan" },
+                    new Student { Name = "Clayface" }
+                }
+            };
+
+            await WhenIAddStudents(request, "Batman");
+            ThenTheseStudentsAreInTheClassPeriod(_theBatmen,
+                "Batwoman",
+                "Red Robin",
+                "Spoiler",
+                "Orphan",
+                "Clayface",
+                "Batman");
+        }
+
+        [TestMethod]
+        public async Task CannotAddAStudentWithTheSameNameToTheSameClassPeriod()
+        {
+            var request = new ClassPeriod
+            {
+                Id = _theBatmen.Id,
+                Name = _theBatmen.Name,
+                Students = new List<Student>
+                {
+                    new Student { Name = "Batwoman" },
+                    new Student { Name = "Red Robin" },
+                    new Student { Name = "Spoiler" },
+                    new Student { Name = "Orphan" },
+                    new Student { Name = "Clayface" }
+                }
+            };
+
+            Func<Task> mut = async () => await WhenIAddStudents(request, "Batwoman");
+            await mut.Should().ThrowAsync<DuplicateStudentException>();
+            ThenTheseStudentsAreInTheClassPeriod(_theBatmen,
+                "Batwoman",
+                "Red Robin",
+                "Spoiler",
+                "Orphan",
+                "Clayface");
+        }
+    }
+
     public abstract class Steps
     {
         protected ClassPeriodService _sut;
