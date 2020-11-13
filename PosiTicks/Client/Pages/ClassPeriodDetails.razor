@@ -11,6 +11,10 @@ else if (vm == null)
 {
     <p><em>Loading...</em></p>
 }
+else if (updateFailedUnexpectedly)
+{
+    <p><em>Sorry, the class period could not be updated due to an error</em></p>
+}
 else
 {
     <section class="jumbotron text-center">
@@ -64,6 +68,7 @@ else
 
 @code {
     private bool loadFailed;
+    private bool updateFailedUnexpectedly;
     private PosiTicks.Shared.ClassPeriod vm;
     private CustomValidator customValidator;
 
@@ -116,8 +121,20 @@ else
         }
 
         addingStudent = false;
-        var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
-        // TODO: handle server error
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync<PosiTicks.Shared.ClassPeriod>($"ClassPeriod/{Id}", vm);
+
+            // TODO: handle server saying duplicate students
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"Update failed. Status Code: {response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            updateFailedUnexpectedly = true;
+            Log.ForContext<ClassPeriodDetails>().Error("Client: Updating Class Period {Id} failed. Error: {@Error}", Id, ex.Message);
+        }
     }
 
     private bool TryAddStudent()
@@ -136,7 +153,7 @@ else
             return false;
         }
 
-        Log.ForContext<ClassPeriod>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
+        Log.ForContext<ClassPeriodDetails>().Information("Client: Adding Student {@Student} to Class Period {Id} at {RequestTime}", student, Id, DateTime.UtcNow);
         student = new PosiTicks.Shared.Student();
         return true;
     }

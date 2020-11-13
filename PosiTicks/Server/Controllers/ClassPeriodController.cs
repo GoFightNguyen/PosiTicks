@@ -56,7 +56,7 @@ namespace PosiTicks.Server.Controllers
             catch (DuplicateClassPeriodException ex)
             {
                 ModelState.AddModelError(nameof(classPeriod.Name), ex.Message);
-                return BadRequest(ModelState);
+                return BadRequest(ModelState); // TODO: return ValidationProblem instead?
             }
             catch (Exception ex)
             {
@@ -67,10 +67,20 @@ namespace PosiTicks.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateClassPeriod(ClassPeriod classPeriod)
+        public async Task<ActionResult> UpdateClassPeriod(int id, ClassPeriod classPeriod)
         {
-            await _service.UpdateAsync(classPeriod);
-            return NoContent();
+            _logger.LogInformation("Updating Class Period {Id} to {@ClassPeriod} at {RequestTime}", id, classPeriod, DateTime.UtcNow);
+            try
+            {
+                await _service.UpdateAsync(classPeriod);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Updating Class Period {Id} to {@ClassPeriod} failed", id, classPeriod);
+            }
+
+            return StatusCode((int)HttpStatusCode.InternalServerError);
         }
     }
 }
