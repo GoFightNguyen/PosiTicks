@@ -1,0 +1,43 @@
+﻿<div class="col-md-4">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <h4 class="my-0 font-weight-normal">@Student.Name</h4>
+        </div>
+        <div class="card-body">
+            <h1 class="card-title">@Student.Tickets <small class="text-muted">tickets</small></h1>
+            <div class="d-flex justify-content-between align-items-center">
+                @if (givingTickets)
+                {
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary oi oi-minus" type="button" @onclick="ReduceTicketsToGiveClicked"></button>
+                        </div>
+                        <input type="number" readonly class="form-control" value="@ticketsToGive" />
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary oi oi-plus" type="button" @onclick="@(e => ticketsToGive++)"></button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="@(e => givingTickets = true)">Give Tickets</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private bool givingTickets;
+    private int ticketsToGive;
+
+    [Parameter]
+    public PosiTicks.Shared.Student Student { get; set; }
+
+    void ReduceTicketsToGiveClicked()
+    {
+        if (ticketsToGive > 0)
+            ticketsToGive--;
+    }
+}
