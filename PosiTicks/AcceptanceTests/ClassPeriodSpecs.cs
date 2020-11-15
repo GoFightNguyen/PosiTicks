@@ -222,6 +222,42 @@ namespace PosiTicks.AcceptanceTests
         }
     }
 
+    [TestClass]
+    public class GivingTicketsToIndividualStudent : Steps
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _sut = new ClassPeriodService();
+        }
+
+        [TestMethod]
+        public async Task GiveFirstTicketsToStudent()
+        {
+            var orig = await GivenClassPeriod("Give Tickets to Student: Justice League of America",
+                ("Batman", 0),
+                ("Killer Frost", 0)
+            );
+            await WhenIGiveTicketsTo(orig.Id, "Killer Frost", 3);
+            await ThenTheTicketsInTheClassPeriodAre(orig.Id,
+                ("Batman", 0),
+                ("Killer Frost", 3));
+        }
+
+        [TestMethod]
+        public async Task GiveAdditionalTicketsToStudent()
+        {
+            var orig = await GivenClassPeriod("Give Tickets to Student: Justice League of America",
+                ("Batman", 0),
+                ("Killer Frost", 3)
+            );
+            await WhenIGiveTicketsTo(orig.Id, "Killer Frost", 4);
+            await ThenTheTicketsInTheClassPeriodAre(orig.Id,
+                ("Batman", 0),
+                ("Killer Frost", 7));
+        }
+    }
+
     public abstract class Steps
     {
         protected ClassPeriodService _sut;
@@ -240,6 +276,18 @@ namespace PosiTicks.AcceptanceTests
             return cp;
         }
 
+        protected async Task<ClassPeriod> GivenClassPeriod(string name, params (string name, int tickets)[] students)
+        {
+            var cp = await _sut.CreateAsync(name);
+            foreach(var student in students)
+            {
+                cp.AddStudent(student.name);
+                cp.GiveTicketsTo(cp.Students.Last(), student.tickets);
+            }
+
+            await _sut.UpdateAsync(cp);
+            return cp;
+        }
 
         /**When**/
         protected async Task WhenIAddStudents(ClassPeriod request, params string[] students)
@@ -256,6 +304,21 @@ namespace PosiTicks.AcceptanceTests
         protected async Task<ClassPeriod> WhenICreateClassPeriod(string name)
             => await _sut.CreateAsync(name);
 
+        protected async Task WhenIGiveTicketsTo(int classPeriodId, string studentName, int tickets)
+        {
+            var cp = await _sut.GetAsync(classPeriodId);
+            
+            // Ensure we do not manipulate the persisted one
+            var request = new ClassPeriod
+            {
+                Id = cp.Id,
+                Name = cp.Name,
+                Students = cp.Students.ToList()
+            };
+            request.GiveTicketsTo(request.Students.Single(s => s.Name == studentName), tickets);
+            
+            await _sut.UpdateAsync(request);
+        }
 
         /**Then**/
         protected void ThenIGet(ClassPeriod actual, ClassPeriod expected)
@@ -271,6 +334,14 @@ namespace PosiTicks.AcceptanceTests
         {
             var expected = students.Select(s => new Student { Name = s });
             classPeriod.Students.Should().BeEquivalentTo(expected);
+        }
+
+        protected async Task ThenTheTicketsInTheClassPeriodAre(int classPeriodId, params (string name, int tickets)[] expected)
+        {
+            var students = expected.Select(x => new Student { Name = x.name, Tickets = x.tickets });
+            
+            var cp = await _sut.GetAsync(classPeriodId);
+            cp.Students.Should().BeEquivalentTo(students);
         }
     }
 }

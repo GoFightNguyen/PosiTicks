@@ -48,5 +48,51 @@ namespace UnitTests
             cp.AddStudent("Killer Frost");
             cp.Students.Select(s => s.Name).Should().BeEquivalentTo("Black Canary", "Killer Frost");
         }
+
+        [DataTestMethod]
+        [DataRow(0)]
+        [DataRow(-1)]
+        public void GiveTicketsToStudent_IgnoresNonPositiveNumbers(int tickets)
+        {
+            var cp = new ClassPeriod();
+            cp.AddStudent("Black Canary");
+            cp.GiveTicketsTo(cp.Students.Last(), tickets);
+            cp.Students.Single().Tickets.Should().Be(0);
+        }
+
+        [DataTestMethod]
+        [DataRow(1)]
+        [DataRow(10)]
+        [DataRow(15)]
+        [DataRow(100)]
+        public void GiveTicketsToStudent_StartValue0_TotalTicketsEqualToHowManyGiven(int tickets)
+        {
+            var cp = new ClassPeriod();
+            cp.Students.Add(new Student { Name = "Killer Frost" });
+            cp.GiveTicketsTo(cp.Students.Last(), tickets);
+            cp.Students.Last().Tickets.Should().Be(tickets);
+        }
+
+        [TestMethod]
+        public void GiveTicketsToStudent_StartValue3_AddsTickets()
+        {
+            var cp = new ClassPeriod();
+            cp.Students.Add(new Student { Name = "Killer Frost", Tickets = 3 });
+            cp.GiveTicketsTo(cp.Students.Last(), 4);
+            cp.Students.Single().Tickets.Should().Be(7);
+        }
+
+        [TestMethod]
+        public void GiveTicketsToStudent_OnlyAffectsSpecifiedStudent()
+        {
+            var cp = new ClassPeriod();
+            cp.Students.Add(new Student { Name = "Black Canary", Tickets = 2 });
+            cp.Students.Add(new Student { Name = "Killer Frost", Tickets = 3 });
+
+            cp.GiveTicketsTo(cp.Students.Last(), 4);
+
+            cp.Students.First().Tickets.Should().Be(2, "this student should not have received any tickets");
+            cp.Students.Last().Tickets.Should().Be(7);
+        }
     }
 }

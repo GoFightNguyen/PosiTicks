@@ -37,10 +37,11 @@ namespace PosiTicks.Server.Domain
             var match = classPeriods.Single(cp => cp.Id == classPeriod.Id);
             foreach(var student in classPeriod.Students)
             {
-                if (match.Students.Any(s => s.Name == student.Name))
-                    continue;
-                
-                match.AddStudent(student.Name);
+                if (!match.Students.Any(s => s.Name == student.Name))
+                    match.AddStudent(student.Name);
+
+                var matchStudent = match.Students.Single(s => s.Name == student.Name);
+                matchStudent.Tickets = student.Tickets;
             }
         }
 

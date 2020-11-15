@@ -30,5 +30,10 @@ namespace PosiTicks.Shared
 
         private static string RemoveExcessWhitespace(string value)
             => REGEX.Replace(value.Trim(), @" ");
+
+        public void GiveTicketsTo(Student student, int tickets)
+        {
+            student.AddTickets(tickets);
+        }
     }
 }
