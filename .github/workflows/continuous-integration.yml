@@ -20,6 +20,9 @@ jobs:
         with:
           dotnet-version: '5.0.x'
 
+      - name: Unit Tests
+        run: dotnet test --filter FullyQualifiedName~UnitTests ./PosiTicks
+
       - name: Acceptance Tests
         run: dotnet test --filter FullyQualifiedName~AcceptanceTests ./PosiTicks
       
